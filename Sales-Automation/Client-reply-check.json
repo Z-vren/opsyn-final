@@ -1,0 +1,619 @@
+﻿{
+  "created": "1771281205229",
+  "updated": "1771281205229",
+  "name": "Client reply check",
+  "description": "",
+  "tags": [],
+  "pieces": [
+    "@activepieces/piece-gmail",
+    "@activepieces/piece-google-sheets"
+  ],
+  "template": {
+    "displayName": "Client reply check",
+    "trigger": {
+      "name": "trigger",
+      "valid": true,
+      "displayName": "New Email",
+      "type": "PIECE_TRIGGER",
+      "settings": {
+        "propertySettings": {
+          "to": {
+            "type": "MANUAL"
+          },
+          "auth": {
+            "type": "MANUAL"
+          },
+          "from": {
+            "type": "MANUAL"
+          },
+          "label": {
+            "type": "MANUAL"
+          },
+          "subject": {
+            "type": "MANUAL"
+          },
+          "category": {
+            "type": "MANUAL"
+          }
+        },
+        "pieceName": "@activepieces/piece-gmail",
+        "pieceVersion": "~0.9.6",
+        "input": {
+          "label": null,
+          "category": null,
+          "auth": "{{connections['gHQ0lNSQiZNkNYNlX0qdg']}}"
+        },
+        "sampleData": {},
+        "triggerName": "gmail_new_email_received"
+      },
+      "nextAction": {
+        "displayName": "Router",
+        "name": "step_1",
+        "valid": true,
+        "settings": {
+          "branches": [
+            {
+              "branchName": "Branch 1",
+              "branchType": "CONDITION",
+              "conditions": [
+                [
+                  {
+                    "operator": "EXISTS",
+                    "firstValue": "{{trigger['message']['inReplyTo']}}"
+                  }
+                ]
+              ]
+            },
+            {
+              "branchName": "Otherwise",
+              "branchType": "FALLBACK"
+            }
+          ],
+          "sampleData": {},
+          "executionType": "EXECUTE_FIRST_MATCH"
+        },
+        "type": "ROUTER",
+        "children": [
+          {
+            "displayName": "Find Rows",
+            "name": "step_2",
+            "valid": true,
+            "skip": false,
+            "settings": {
+              "input": {
+                "includeTeamDrives": false,
+                "spreadsheetId": "1xEW__vWSU4aqy7WlMvx9E0Y2LUNR9z7f6Im34ZCpil0",
+                "sheetId": 0,
+                "columnName": "AN",
+                "searchValue": "{{trigger['message']['inReplyTo']}}",
+                "matchCase": false,
+                "startingRow": "2",
+                "numberOfRows": 1,
+                "headerRow": 1,
+                "useHeaderNames": false,
+                "auth": "{{connections['NKUHkNcu3vhJhVbDplnrT']}}"
+              },
+              "pieceName": "@activepieces/piece-google-sheets",
+              "actionName": "find_rows",
+              "sampleData": {},
+              "pieceVersion": "~0.12.20",
+              "propertySettings": {
+                "auth": {
+                  "type": "MANUAL"
+                },
+                "sheetId": {
+                  "type": "MANUAL"
+                },
+                "headerRow": {
+                  "type": "MANUAL"
+                },
+                "matchCase": {
+                  "type": "MANUAL"
+                },
+                "columnName": {
+                  "type": "MANUAL"
+                },
+                "searchValue": {
+                  "type": "MANUAL"
+                },
+                "startingRow": {
+                  "type": "MANUAL"
+                },
+                "numberOfRows": {
+                  "type": "MANUAL"
+                },
+                "spreadsheetId": {
+                  "type": "MANUAL"
+                },
+                "useHeaderNames": {
+                  "type": "MANUAL"
+                },
+                "includeTeamDrives": {
+                  "type": "MANUAL"
+                }
+              },
+              "errorHandlingOptions": {
+                "retryOnFailure": {
+                  "value": false
+                },
+                "continueOnFailure": {
+                  "value": false
+                }
+              }
+            },
+            "type": "PIECE",
+            "nextAction": {
+              "displayName": "Router",
+              "name": "step_3",
+              "valid": true,
+              "skip": false,
+              "settings": {
+                "executionType": "EXECUTE_FIRST_MATCH",
+                "branches": [
+                  {
+                    "conditions": [
+                      [
+                        {
+                          "operator": "EXISTS",
+                          "firstValue": "{{step_2[0]['row']}}"
+                        }
+                      ]
+                    ],
+                    "branchType": "CONDITION",
+                    "branchName": "Branch 1"
+                  },
+                  {
+                    "branchType": "FALLBACK",
+                    "branchName": "Otherwise"
+                  }
+                ],
+                "sampleData": {}
+              },
+              "type": "ROUTER",
+              "children": [
+                {
+                  "displayName": "Update Row",
+                  "name": "step_4",
+                  "valid": true,
+                  "skip": false,
+                  "settings": {
+                    "input": {
+                      "includeTeamDrives": false,
+                      "spreadsheetId": "1xEW__vWSU4aqy7WlMvx9E0Y2LUNR9z7f6Im34ZCpil0",
+                      "sheetId": 0,
+                      "row_id": "{{step_2[0]['row']}}",
+                      "first_row_headers": true,
+                      "values": {
+                        "AO": "Yes"
+                      },
+                      "auth": "{{connections['NKUHkNcu3vhJhVbDplnrT']}}"
+                    },
+                    "pieceName": "@activepieces/piece-google-sheets",
+                    "actionName": "update_row",
+                    "sampleData": {},
+                    "pieceVersion": "~0.12.20",
+                    "propertySettings": {
+                      "auth": {
+                        "type": "MANUAL"
+                      },
+                      "row_id": {
+                        "type": "MANUAL"
+                      },
+                      "values": {
+                        "type": "MANUAL",
+                        "schema": {
+                          "A": {
+                            "displayName": "First Name",
+                            "description": "First Name",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "B": {
+                            "displayName": "Last Name",
+                            "description": "Last Name",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "C": {
+                            "displayName": "Email",
+                            "description": "Email",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "D": {
+                            "displayName": "Email verifiaction status",
+                            "description": "Email verifiaction status",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "E": {
+                            "displayName": "Email verifiaction score",
+                            "description": "Email verifiaction score",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "F": {
+                            "displayName": "Email Priority",
+                            "description": "Email Priority",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "G": {
+                            "displayName": "Action Needed for Email",
+                            "description": "Action Needed for Email",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "H": {
+                            "displayName": "Mobile Number",
+                            "description": "Mobile Number",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "I": {
+                            "displayName": "Personal Email",
+                            "description": "Personal Email",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "J": {
+                            "displayName": "LinkedIn",
+                            "description": "LinkedIn",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "K": {
+                            "displayName": "Job Title",
+                            "description": "Job Title",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "L": {
+                            "displayName": "Seniority Level",
+                            "description": "Seniority Level",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "M": {
+                            "displayName": "Functional Level",
+                            "description": "Functional Level",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "N": {
+                            "displayName": "Company Name",
+                            "description": "Company Name",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "O": {
+                            "displayName": "Company Website",
+                            "description": "Company Website",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "P": {
+                            "displayName": "Company Domain",
+                            "description": "Company Domain",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "Q": {
+                            "displayName": "Industry",
+                            "description": "Industry",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "R": {
+                            "displayName": "Company LinkedIn",
+                            "description": "Company LinkedIn",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "S": {
+                            "displayName": "Headline",
+                            "description": "Headline",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "T": {
+                            "displayName": "Company Size",
+                            "description": "Company Size",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "U": {
+                            "displayName": "Company Founded Year",
+                            "description": "Company Founded Year",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "V": {
+                            "displayName": "Company Phone",
+                            "description": "Company Phone",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "W": {
+                            "displayName": "City",
+                            "description": "City",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "X": {
+                            "displayName": "Country",
+                            "description": "Country",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "Y": {
+                            "displayName": "Company Full Address",
+                            "description": "Company Full Address",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "Z": {
+                            "displayName": "Company Technologies",
+                            "description": "Company Technologies",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "AA": {
+                            "displayName": "Company Description",
+                            "description": "Company Description",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "AB": {
+                            "displayName": "website_quality_branding_needs",
+                            "description": "website_quality_branding_needs",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "AC": {
+                            "displayName": "primary_service_need",
+                            "description": "primary_service_need",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "AD": {
+                            "displayName": "lead_score",
+                            "description": "lead_score",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "AE": {
+                            "displayName": "lead_qualification",
+                            "description": "lead_qualification",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "AF": {
+                            "displayName": "qualification_reason",
+                            "description": "qualification_reason",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "AG": {
+                            "displayName": "Suggested_package_by_ai",
+                            "description": "Suggested_package_by_ai",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "AH": {
+                            "displayName": "suggested-package-pricing-tier",
+                            "description": "suggested-package-pricing-tier",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "AI": {
+                            "displayName": "services-included-in-suggested-package",
+                            "description": "services-included-in-suggested-package",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "AJ": {
+                            "displayName": "suggested-email-tone-by-ai",
+                            "description": "suggested-email-tone-by-ai",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "AK": {
+                            "displayName": "email_sent",
+                            "description": "email_sent",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "AL": {
+                            "displayName": "email_sent_time",
+                            "description": "email_sent_time",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "AM": {
+                            "displayName": "email_sequence_step",
+                            "description": "email_sequence_step",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "AN": {
+                            "displayName": "email_message_id",
+                            "description": "email_message_id",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "AO": {
+                            "displayName": "replay_status",
+                            "description": "replay_status",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          },
+                          "AP": {
+                            "displayName": "email-subject",
+                            "description": "email-subject",
+                            "required": false,
+                            "defaultValue": "",
+                            "type": "SHORT_TEXT"
+                          }
+                        }
+                      },
+                      "sheetId": {
+                        "type": "MANUAL"
+                      },
+                      "spreadsheetId": {
+                        "type": "MANUAL"
+                      },
+                      "first_row_headers": {
+                        "type": "MANUAL"
+                      },
+                      "includeTeamDrives": {
+                        "type": "MANUAL"
+                      }
+                    },
+                    "errorHandlingOptions": {
+                      "retryOnFailure": {
+                        "value": false
+                      },
+                      "continueOnFailure": {
+                        "value": false
+                      }
+                    }
+                  },
+                  "type": "PIECE",
+                  "nextAction": {
+                    "displayName": "Send Email",
+                    "name": "step_5",
+                    "valid": true,
+                    "skip": false,
+                    "settings": {
+                      "input": {
+                        "receiver": [
+                          "amna4455yaseen@gmail.com"
+                        ],
+                        "cc": [],
+                        "bcc": [],
+                        "subject": "New Client Reply – {{step_2[0]['values']['N']}}",
+                        "body_type": "plain_text",
+                        "body": "A client has replied to our outreach.\nCompany: {{step_2[0]['values']['P']}}\nEmail: {{step_2[0]['values']['C']}}\nService: {{step_2[0]['values']['AC']}}\nPlease take action.",
+                        "reply_to": [],
+                        "attachments": [],
+                        "draft": false,
+                        "auth": "{{connections['gHQ0lNSQiZNkNYNlX0qdg']}}"
+                      },
+                      "pieceName": "@activepieces/piece-gmail",
+                      "actionName": "send_email",
+                      "sampleData": {},
+                      "pieceVersion": "~0.9.6",
+                      "propertySettings": {
+                        "cc": {
+                          "type": "MANUAL"
+                        },
+                        "bcc": {
+                          "type": "MANUAL"
+                        },
+                        "auth": {
+                          "type": "MANUAL"
+                        },
+                        "body": {
+                          "type": "MANUAL"
+                        },
+                        "from": {
+                          "type": "MANUAL"
+                        },
+                        "draft": {
+                          "type": "MANUAL"
+                        },
+                        "subject": {
+                          "type": "MANUAL"
+                        },
+                        "receiver": {
+                          "type": "MANUAL"
+                        },
+                        "reply_to": {
+                          "type": "MANUAL"
+                        },
+                        "body_type": {
+                          "type": "MANUAL"
+                        },
+                        "attachments": {
+                          "type": "MANUAL"
+                        },
+                        "in_reply_to": {
+                          "type": "MANUAL"
+                        },
+                        "sender_name": {
+                          "type": "MANUAL"
+                        }
+                      },
+                      "errorHandlingOptions": {
+                        "retryOnFailure": {
+                          "value": false
+                        },
+                        "continueOnFailure": {
+                          "value": false
+                        }
+                      }
+                    },
+                    "type": "PIECE"
+                  }
+                },
+                null
+              ]
+            }
+          },
+          null
+        ]
+      }
+    },
+    "valid": true,
+    "agentIds": [],
+    "connectionIds": [
+      "gHQ0lNSQiZNkNYNlX0qdg",
+      "NKUHkNcu3vhJhVbDplnrT"
+    ],
+    "schemaVersion": "8",
+    "backupFiles": null
+  },
+  "blogUrl": ""
+}
