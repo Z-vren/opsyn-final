@@ -1,0 +1,860 @@
+﻿{
+  "created": "1771281229025",
+  "updated": "1771281229025",
+  "name": "Day3",
+  "description": "",
+  "tags": [],
+  "pieces": [
+    "@activepieces/piece-schedule",
+    "@activepieces/piece-google-sheets",
+    "@activepieces/piece-openai",
+    "@activepieces/piece-gmail"
+  ],
+  "template": {
+    "displayName": "Day3",
+    "trigger": {
+      "name": "trigger",
+      "valid": true,
+      "displayName": "Every Hour",
+      "type": "PIECE_TRIGGER",
+      "settings": {
+        "propertySettings": {
+          "run_on_weekends": {
+            "type": "MANUAL"
+          }
+        },
+        "pieceName": "@activepieces/piece-schedule",
+        "pieceVersion": "~0.1.13",
+        "input": {
+          "run_on_weekends": false
+        },
+        "sampleData": {},
+        "triggerName": "every_hour"
+      },
+      "nextAction": {
+        "displayName": "Get next row(s)",
+        "name": "step_1",
+        "valid": true,
+        "settings": {
+          "pieceName": "@activepieces/piece-google-sheets",
+          "actionName": "get_next_rows",
+          "pieceVersion": "~0.12.20",
+          "input": {
+            "includeTeamDrives": false,
+            "spreadsheetId": "1xEW__vWSU4aqy7WlMvx9E0Y2LUNR9z7f6Im34ZCpil0",
+            "sheetId": 0,
+            "startRow": "2",
+            "headerRow": 1,
+            "useHeaderNames": true,
+            "memKey": "row_number",
+            "groupSize": "10",
+            "auth": "{{connections['NKUHkNcu3vhJhVbDplnrT']}}"
+          },
+          "errorHandlingOptions": {
+            "continueOnFailure": {
+              "value": false
+            },
+            "retryOnFailure": {
+              "value": false
+            }
+          },
+          "propertySettings": {
+            "auth": {
+              "type": "MANUAL"
+            },
+            "includeTeamDrives": {
+              "type": "MANUAL"
+            },
+            "spreadsheetId": {
+              "type": "MANUAL"
+            },
+            "sheetId": {
+              "type": "MANUAL"
+            },
+            "startRow": {
+              "type": "MANUAL"
+            },
+            "headerRow": {
+              "type": "MANUAL"
+            },
+            "useHeaderNames": {
+              "type": "MANUAL"
+            },
+            "markdown": {
+              "type": "MANUAL"
+            },
+            "memKey": {
+              "type": "MANUAL"
+            },
+            "groupSize": {
+              "type": "MANUAL"
+            }
+          },
+          "sampleData": {}
+        },
+        "type": "PIECE",
+        "nextAction": {
+          "displayName": "Loop on Items",
+          "name": "step_2",
+          "valid": true,
+          "skip": false,
+          "settings": {
+            "items": "{{step_1}}",
+            "sampleData": {}
+          },
+          "type": "LOOP_ON_ITEMS",
+          "firstLoopAction": {
+            "displayName": "Router",
+            "name": "step_3",
+            "valid": true,
+            "skip": false,
+            "settings": {
+              "executionType": "EXECUTE_FIRST_MATCH",
+              "branches": [
+                {
+                  "conditions": [
+                    [
+                      {
+                        "operator": "TEXT_EXACTLY_MATCHES",
+                        "firstValue": "{{step_2['item']['values']['email_sequence_step']}}",
+                        "secondValue": "1",
+                        "caseSensitive": false
+                      },
+                      {
+                        "firstValue": "{{step_2['item']['values']['replay_status']}}",
+                        "secondValue": "Yes",
+                        "operator": "TEXT_DOES_NOT_CONTAIN",
+                        "caseSensitive": false
+                      }
+                    ]
+                  ],
+                  "branchType": "CONDITION",
+                  "branchName": "Branch 1"
+                },
+                {
+                  "branchType": "FALLBACK",
+                  "branchName": "Otherwise"
+                }
+              ],
+              "sampleData": {}
+            },
+            "type": "ROUTER",
+            "children": [
+              {
+                "displayName": "Code",
+                "name": "step_4",
+                "valid": true,
+                "skip": false,
+                "settings": {
+                  "sourceCode": {
+                    "code": "export const code = async (inputs) => {\n  const inputDate = inputs[\"previous-email-sent-time\"]; // Fixed: removed the 's'\n  \n  if (!inputDate) {\n    return {\n      time_passed_hours: 0,\n      can_send_followup: false\n    };\n  }\n  \n  const lastSent = new Date(inputDate);\n  const now = new Date();\n  \n  if (isNaN(lastSent.getTime())) {\n    return {\n      time_passed_hours: 0,\n      can_send_followup: false\n    };\n  }\n  \n  const diffMs = now.getTime() - lastSent.getTime();\n  const diffHours = diffMs / (1000 * 60 * 60);\n  \n  return {\n    time_passed_hours: Math.round(diffHours * 100) / 100,\n    can_send_followup: diffHours >= 72\n  };\n};",
+                    "packageJson": "{}"
+                  },
+                  "input": {
+                    "previous-email-sent-time": "{{step_2['item']['values']['email_sent_time']}}"
+                  },
+                  "errorHandlingOptions": {
+                    "continueOnFailure": {
+                      "value": false
+                    },
+                    "retryOnFailure": {
+                      "value": false
+                    }
+                  },
+                  "sampleData": {}
+                },
+                "type": "CODE",
+                "nextAction": {
+                  "displayName": "Router",
+                  "name": "step_5",
+                  "valid": true,
+                  "skip": false,
+                  "settings": {
+                    "executionType": "EXECUTE_FIRST_MATCH",
+                    "branches": [
+                      {
+                        "conditions": [
+                          [
+                            {
+                              "operator": "TEXT_EXACTLY_MATCHES",
+                              "firstValue": "{{step_4['can_send_followup']}}",
+                              "secondValue": "true",
+                              "caseSensitive": false
+                            }
+                          ]
+                        ],
+                        "branchType": "CONDITION",
+                        "branchName": "Branch 1"
+                      },
+                      {
+                        "branchType": "FALLBACK",
+                        "branchName": "Otherwise"
+                      }
+                    ],
+                    "sampleData": {}
+                  },
+                  "type": "ROUTER",
+                  "children": [
+                    {
+                      "displayName": "Extract Structured Data from Text Copy",
+                      "name": "step_7",
+                      "valid": true,
+                      "skip": false,
+                      "settings": {
+                        "input": {
+                          "model": "gpt-3.5-turbo",
+                          "text": "You are a professional B2B sales copywriter writing a polite follow-up email to a previously sent cold outreach.\nThis is a Day-3 follow-up on the SAME email thread.\nThe prospect may have seen the first email but has not replied.\nDO NOT repeat the full pitch.\nDO NOT reintroduce yourself.\nDO NOT mention pricing.\nDO NOT sound pushy or desperate.\n---\nMY DETAILS:\nMy Company: ABC Services\nMy Name: Amna\nMy Role: XYZ\n---\nLEAD DETAILS:\n- First Name: {{step_2['item']['values']['First Name']}}\n- Company Name: {{step_2['item']['values']['Company Name']}}\n- Job Title: {{step_2['item']['values']['Job Title']}}\n- Location: {{step_2['item']['values']['City']}}, {{step_2['item']['values']['Country']}}\n- Observed Gap: {{step_2['item']['values']['website_quality_branding_needs']}}\n- Primary Service Need: {{step_2['item']['values']['primary_service_need']}}\n---\nSOLUTION CONTEXT (from previous email):\n- Suggested Package: {{step_2['item']['values']['Suggested_package_by_ai']}}\n- Services Included: {{step_2['item']['values']['services-included-in-suggested-package']}}\n---\nTONE:\n{{step_2['item']['values']['suggested-email-tone-by-ai']}}\n---\nWRITING INSTRUCTIONS:\n1. Start with a gentle follow-up line (e.g. “Just wanted to follow up on my note below…”)\n2. Briefly restate the ONE key problem they might be facing (Observed Gap)\n3. Re-mention the Suggested Package as a possible fit (no explanation, no selling)\n4. Add ONE short benefit (not a list)\n5. End with a soft CTA:\n   “Would it make sense to explore this in a quick 15-minute call?”\n6. Keep it SHORT: 70–90 words\n7. Address them by first name only\n8. Assume this email is sent as a REPLY (do not write subject line)\n---\nHTML FORMATTING RULES:\n- Use <p> for paragraphs\n- NO bullet lists\n- NO <html>, <head>, <body>\n- Clean, email-client safe HTML\n---\nOUTPUT:\nReturn only the HTML email body.\n",
+                          "params": [
+                            {
+                              "propName": "email-body",
+                              "propDescription": "Polite Day-3 follow-up HTML email body written as a reply to a previous cold outreach. Must be 70–90 words, non-pushy, and follow all provided instructions and HTML rules.",
+                              "propDataType": "string",
+                              "propIsRequired": false
+                            }
+                          ],
+                          "auth": "{{connections['w5G2Y3KE3PNV0KiE5dHye']}}"
+                        },
+                        "pieceName": "@activepieces/piece-openai",
+                        "actionName": "extract-structured-data",
+                        "sampleData": {},
+                        "pieceVersion": "~0.6.7",
+                        "propertySettings": {
+                          "auth": {
+                            "type": "MANUAL"
+                          },
+                          "text": {
+                            "type": "MANUAL"
+                          },
+                          "model": {
+                            "type": "MANUAL"
+                          },
+                          "params": {
+                            "type": "MANUAL"
+                          }
+                        },
+                        "errorHandlingOptions": {
+                          "retryOnFailure": {
+                            "value": false
+                          },
+                          "continueOnFailure": {
+                            "value": false
+                          }
+                        }
+                      },
+                      "type": "PIECE",
+                      "nextAction": {
+                        "displayName": "Send Email Copy",
+                        "name": "step_6",
+                        "valid": true,
+                        "skip": false,
+                        "settings": {
+                          "input": {
+                            "receiver": [
+                              "zg4871044@gmail.com"
+                            ],
+                            "cc": [],
+                            "bcc": [],
+                            "subject": "{{step_2['item']['values']['email-subject']}}",
+                            "body_type": "html",
+                            "body": "{{step_7['email-body']}}",
+                            "reply_to": [],
+                            "attachments": [],
+                            "in_reply_to": "{{step_2['item']['values']['email_message_id']}}",
+                            "draft": false,
+                            "auth": "{{connections['gHQ0lNSQiZNkNYNlX0qdg']}}"
+                          },
+                          "pieceName": "@activepieces/piece-gmail",
+                          "actionName": "send_email",
+                          "sampleData": {},
+                          "pieceVersion": "~0.9.6",
+                          "propertySettings": {
+                            "cc": {
+                              "type": "MANUAL"
+                            },
+                            "bcc": {
+                              "type": "MANUAL"
+                            },
+                            "auth": {
+                              "type": "MANUAL"
+                            },
+                            "body": {
+                              "type": "MANUAL"
+                            },
+                            "from": {
+                              "type": "MANUAL"
+                            },
+                            "draft": {
+                              "type": "MANUAL"
+                            },
+                            "subject": {
+                              "type": "MANUAL"
+                            },
+                            "receiver": {
+                              "type": "MANUAL"
+                            },
+                            "reply_to": {
+                              "type": "MANUAL"
+                            },
+                            "body_type": {
+                              "type": "DYNAMIC"
+                            },
+                            "attachments": {
+                              "type": "MANUAL"
+                            },
+                            "in_reply_to": {
+                              "type": "MANUAL"
+                            },
+                            "sender_name": {
+                              "type": "MANUAL"
+                            }
+                          },
+                          "errorHandlingOptions": {
+                            "retryOnFailure": {
+                              "value": false
+                            },
+                            "continueOnFailure": {
+                              "value": false
+                            }
+                          }
+                        },
+                        "type": "PIECE",
+                        "nextAction": {
+                          "displayName": "Custom API Call Copy",
+                          "name": "step_10",
+                          "valid": true,
+                          "skip": false,
+                          "settings": {
+                            "input": {
+                              "url": {
+                                "url": "/users/me/messages/{{step_6['data']['id']}}"
+                              },
+                              "method": "GET",
+                              "headers": {},
+                              "queryParams": {
+                                "format": "metadata"
+                              },
+                              "response_is_binary": false,
+                              "failsafe": false,
+                              "auth": "{{connections['gHQ0lNSQiZNkNYNlX0qdg']}}"
+                            },
+                            "pieceName": "@activepieces/piece-gmail",
+                            "actionName": "custom_api_call",
+                            "sampleData": {},
+                            "pieceVersion": "~0.9.6",
+                            "propertySettings": {
+                              "url": {
+                                "type": "MANUAL",
+                                "schema": {
+                                  "url": {
+                                    "displayName": "URL",
+                                    "description": "You can either use the full URL or the relative path to the base URL\ni.e https://gmail.googleapis.com/gmail/v1/resource or /resource",
+                                    "required": true,
+                                    "defaultValue": "https://gmail.googleapis.com/gmail/v1",
+                                    "type": "SHORT_TEXT"
+                                  }
+                                }
+                              },
+                              "auth": {
+                                "type": "MANUAL"
+                              },
+                              "body": {
+                                "type": "MANUAL"
+                              },
+                              "method": {
+                                "type": "MANUAL"
+                              },
+                              "headers": {
+                                "type": "MANUAL"
+                              },
+                              "timeout": {
+                                "type": "MANUAL"
+                              },
+                              "failsafe": {
+                                "type": "MANUAL"
+                              },
+                              "queryParams": {
+                                "type": "MANUAL"
+                              },
+                              "response_is_binary": {
+                                "type": "MANUAL"
+                              }
+                            },
+                            "errorHandlingOptions": {
+                              "retryOnFailure": {
+                                "value": false
+                              },
+                              "continueOnFailure": {
+                                "value": false
+                              }
+                            }
+                          },
+                          "type": "PIECE",
+                          "nextAction": {
+                            "displayName": "Code Copy",
+                            "name": "step_11",
+                            "valid": true,
+                            "skip": false,
+                            "settings": {
+                              "input": {
+                                "apiResponse": "{{step_10['body']}}"
+                              },
+                              "sampleData": {},
+                              "sourceCode": {
+                                "code": "export const code = async (inputs) => {\n  const headers = inputs.apiResponse.payload.headers;\n  \n  const messageIdHeader = headers.find(h => h.name === 'Message-Id');\n  \n  return {\n    message_id: messageIdHeader ? messageIdHeader.value : null\n  };\n};",
+                                "packageJson": "{}"
+                              },
+                              "errorHandlingOptions": {
+                                "retryOnFailure": {
+                                  "value": false
+                                },
+                                "continueOnFailure": {
+                                  "value": false
+                                }
+                              }
+                            },
+                            "type": "CODE",
+                            "nextAction": {
+                              "displayName": "Router Copy",
+                              "name": "step_8",
+                              "valid": true,
+                              "skip": false,
+                              "settings": {
+                                "branches": [
+                                  {
+                                    "branchName": "Branch 1",
+                                    "branchType": "CONDITION",
+                                    "conditions": [
+                                      [
+                                        {
+                                          "operator": "EXISTS",
+                                          "firstValue": "{{step_6['data']['id']}}"
+                                        },
+                                        {
+                                          "operator": "NUMBER_IS_EQUAL_TO",
+                                          "firstValue": "{{step_6['status']}}",
+                                          "secondValue": "200"
+                                        },
+                                        {
+                                          "operator": "TEXT_CONTAINS",
+                                          "firstValue": "{{step_6['statusText']}}",
+                                          "secondValue": "OK",
+                                          "caseSensitive": false
+                                        }
+                                      ]
+                                    ]
+                                  },
+                                  {
+                                    "branchName": "Otherwise",
+                                    "branchType": "FALLBACK"
+                                  }
+                                ],
+                                "sampleData": {},
+                                "executionType": "EXECUTE_FIRST_MATCH"
+                              },
+                              "type": "ROUTER",
+                              "children": [
+                                {
+                                  "displayName": "Code Copy",
+                                  "name": "step_12",
+                                  "valid": true,
+                                  "skip": false,
+                                  "settings": {
+                                    "sourceCode": {
+                                      "code": "export const code = async (inputs) => {\n  const now = new Date();\n  // Format: YYYY-MM-DD HH:mm:ss\n  const formattedTime =\n    now.getFullYear() + \"-\" +\n    String(now.getMonth() + 1).padStart(2, \"0\") + \"-\" +\n    String(now.getDate()).padStart(2, \"0\") + \" \" +\n    String(now.getHours()).padStart(2, \"0\") + \":\" +\n    String(now.getMinutes()).padStart(2, \"0\") + \":\" +\n    String(now.getSeconds()).padStart(2, \"0\");\n  return {\n    last_email_sent_at: formattedTime\n  };\n}; ",
+                                      "packageJson": "{}"
+                                    },
+                                    "input": {},
+                                    "errorHandlingOptions": {
+                                      "continueOnFailure": {
+                                        "value": false
+                                      },
+                                      "retryOnFailure": {
+                                        "value": false
+                                      }
+                                    },
+                                    "sampleData": {}
+                                  },
+                                  "type": "CODE",
+                                  "nextAction": {
+                                    "displayName": "Update Row Copy",
+                                    "name": "step_9",
+                                    "valid": true,
+                                    "skip": false,
+                                    "settings": {
+                                      "input": {
+                                        "includeTeamDrives": false,
+                                        "spreadsheetId": "1xEW__vWSU4aqy7WlMvx9E0Y2LUNR9z7f6Im34ZCpil0",
+                                        "sheetId": 0,
+                                        "row_id": "{{step_2['item']['row']}}",
+                                        "first_row_headers": true,
+                                        "values": {
+                                          "AL": "{{step_12['last_email_sent_at']}}",
+                                          "AM": "2",
+                                          "AN": "{{step_11['message_id']}}"
+                                        },
+                                        "auth": "{{connections['NKUHkNcu3vhJhVbDplnrT']}}"
+                                      },
+                                      "pieceName": "@activepieces/piece-google-sheets",
+                                      "actionName": "update_row",
+                                      "sampleData": {},
+                                      "pieceVersion": "~0.12.20",
+                                      "propertySettings": {
+                                        "auth": {
+                                          "type": "MANUAL"
+                                        },
+                                        "row_id": {
+                                          "type": "MANUAL"
+                                        },
+                                        "values": {
+                                          "type": "MANUAL",
+                                          "schema": {
+                                            "A": {
+                                              "displayName": "First Name",
+                                              "description": "First Name",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "B": {
+                                              "displayName": "Last Name",
+                                              "description": "Last Name",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "C": {
+                                              "displayName": "Email",
+                                              "description": "Email",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "D": {
+                                              "displayName": "Email verifiaction status",
+                                              "description": "Email verifiaction status",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "E": {
+                                              "displayName": "Email verifiaction score",
+                                              "description": "Email verifiaction score",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "F": {
+                                              "displayName": "Email Priority",
+                                              "description": "Email Priority",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "G": {
+                                              "displayName": "Action Needed for Email",
+                                              "description": "Action Needed for Email",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "H": {
+                                              "displayName": "Mobile Number",
+                                              "description": "Mobile Number",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "I": {
+                                              "displayName": "Personal Email",
+                                              "description": "Personal Email",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "J": {
+                                              "displayName": "LinkedIn",
+                                              "description": "LinkedIn",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "K": {
+                                              "displayName": "Job Title",
+                                              "description": "Job Title",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "L": {
+                                              "displayName": "Seniority Level",
+                                              "description": "Seniority Level",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "M": {
+                                              "displayName": "Functional Level",
+                                              "description": "Functional Level",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "N": {
+                                              "displayName": "Company Name",
+                                              "description": "Company Name",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "O": {
+                                              "displayName": "Company Website",
+                                              "description": "Company Website",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "P": {
+                                              "displayName": "Company Domain",
+                                              "description": "Company Domain",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "Q": {
+                                              "displayName": "Industry",
+                                              "description": "Industry",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "R": {
+                                              "displayName": "Company LinkedIn",
+                                              "description": "Company LinkedIn",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "S": {
+                                              "displayName": "Headline",
+                                              "description": "Headline",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "T": {
+                                              "displayName": "Company Size",
+                                              "description": "Company Size",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "U": {
+                                              "displayName": "Company Founded Year",
+                                              "description": "Company Founded Year",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "V": {
+                                              "displayName": "Company Phone",
+                                              "description": "Company Phone",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "W": {
+                                              "displayName": "City",
+                                              "description": "City",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "X": {
+                                              "displayName": "Country",
+                                              "description": "Country",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "Y": {
+                                              "displayName": "Company Full Address",
+                                              "description": "Company Full Address",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "Z": {
+                                              "displayName": "Company Technologies",
+                                              "description": "Company Technologies",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "AA": {
+                                              "displayName": "Company Description",
+                                              "description": "Company Description",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "AB": {
+                                              "displayName": "website_quality_branding_needs",
+                                              "description": "website_quality_branding_needs",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "AC": {
+                                              "displayName": "primary_service_need",
+                                              "description": "primary_service_need",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "AD": {
+                                              "displayName": "lead_score",
+                                              "description": "lead_score",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "AE": {
+                                              "displayName": "lead_qualification",
+                                              "description": "lead_qualification",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "AF": {
+                                              "displayName": "qualification_reason",
+                                              "description": "qualification_reason",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "AG": {
+                                              "displayName": "Suggested_package_by_ai",
+                                              "description": "Suggested_package_by_ai",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "AH": {
+                                              "displayName": "suggested-package-pricing-tier",
+                                              "description": "suggested-package-pricing-tier",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "AI": {
+                                              "displayName": "services-included-in-suggested-package",
+                                              "description": "services-included-in-suggested-package",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "AJ": {
+                                              "displayName": "suggested-email-tone-by-ai",
+                                              "description": "suggested-email-tone-by-ai",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "AK": {
+                                              "displayName": "email_sent",
+                                              "description": "email_sent",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "AL": {
+                                              "displayName": "email_sent_time",
+                                              "description": "email_sent_time",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "AM": {
+                                              "displayName": "email_sequence_step",
+                                              "description": "email_sequence_step",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "AN": {
+                                              "displayName": "email_message_id",
+                                              "description": "email_message_id",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "AO": {
+                                              "displayName": "replay_status",
+                                              "description": "replay_status",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            },
+                                            "AP": {
+                                              "displayName": "email-subject",
+                                              "description": "email-subject",
+                                              "required": false,
+                                              "defaultValue": "",
+                                              "type": "SHORT_TEXT"
+                                            }
+                                          }
+                                        },
+                                        "sheetId": {
+                                          "type": "MANUAL"
+                                        },
+                                        "spreadsheetId": {
+                                          "type": "MANUAL"
+                                        },
+                                        "first_row_headers": {
+                                          "type": "MANUAL"
+                                        },
+                                        "includeTeamDrives": {
+                                          "type": "MANUAL"
+                                        }
+                                      },
+                                      "errorHandlingOptions": {
+                                        "retryOnFailure": {
+                                          "value": false
+                                        },
+                                        "continueOnFailure": {
+                                          "value": false
+                                        }
+                                      }
+                                    },
+                                    "type": "PIECE"
+                                  }
+                                },
+                                null
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    },
+                    null
+                  ]
+                }
+              },
+              null
+            ]
+          }
+        }
+      }
+    },
+    "valid": true,
+    "agentIds": [],
+    "connectionIds": [
+      "NKUHkNcu3vhJhVbDplnrT",
+      "w5G2Y3KE3PNV0KiE5dHye",
+      "gHQ0lNSQiZNkNYNlX0qdg"
+    ],
+    "schemaVersion": "8",
+    "backupFiles": null
+  },
+  "blogUrl": ""
+}
