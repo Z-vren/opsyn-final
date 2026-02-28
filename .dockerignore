@@ -7,11 +7,9 @@
 .history
 .idea
 *.log
-*.md
 .vscode
 builds
 deploy
 Dockerfile
 dist
-docs
 node_modules
