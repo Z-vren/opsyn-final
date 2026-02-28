@@ -4,6 +4,11 @@ export class AddPasswordResetOtpEntity1735000000000 implements MigrationInterfac
     name = 'AddPasswordResetOtpEntity1735000000000'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
+        const tableExists = await queryRunner.hasTable('password_reset_otp')
+        if (tableExists) {
+            return
+        }
+
         await queryRunner.createTable(
             new Table({
                 name: 'password_reset_otp',
@@ -54,16 +59,19 @@ export class AddPasswordResetOtpEntity1735000000000 implements MigrationInterfac
             }),
         )
 
-        await queryRunner.createForeignKey(
-            'password_reset_otp',
-            new TableForeignKey({
-                name: 'fk_password_reset_otp_identity_id',
-                columnNames: ['identityId'],
-                referencedTableName: 'user_identity',
-                referencedColumnNames: ['id'],
-                onDelete: 'CASCADE',
-            }),
-        )
+        const userIdentityExists = await queryRunner.hasTable('user_identity')
+        if (userIdentityExists) {
+            await queryRunner.createForeignKey(
+                'password_reset_otp',
+                new TableForeignKey({
+                    name: 'fk_password_reset_otp_identity_id',
+                    columnNames: ['identityId'],
+                    referencedTableName: 'user_identity',
+                    referencedColumnNames: ['id'],
+                    onDelete: 'CASCADE',
+                }),
+            )
+        }
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {

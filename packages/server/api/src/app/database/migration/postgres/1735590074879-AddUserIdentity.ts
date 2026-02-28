@@ -178,6 +178,21 @@ export class AddUserIdentity1735590074879 implements MigrationInterface {
                 ADD CONSTRAINT "fk_otp_identity_id" FOREIGN KEY ("identityId") REFERENCES "user_identity"("id") ON DELETE CASCADE ON UPDATE NO ACTION
             `)
         }
+
+        const passwordResetOtpExists = await queryRunner.hasTable('password_reset_otp')
+        if (passwordResetOtpExists) {
+            const fkExists = await queryRunner.query(`
+                SELECT 1 FROM information_schema.table_constraints
+                WHERE constraint_name = 'fk_password_reset_otp_identity_id'
+                AND table_name = 'password_reset_otp'
+            `)
+            if (fkExists.length === 0) {
+                await queryRunner.query(`
+                    ALTER TABLE "password_reset_otp"
+                    ADD CONSTRAINT "fk_password_reset_otp_identity_id" FOREIGN KEY ("identityId") REFERENCES "user_identity"("id") ON DELETE CASCADE
+                `)
+            }
+        }
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
