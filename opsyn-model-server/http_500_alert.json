@@ -1,0 +1,152 @@
+{
+  "name": "Monitor Status Code 500",
+  "description": "",
+  "tags": [],
+  "pieces": [
+    "@activepieces/piece-code-helper",
+    "@activepieces/piece-google-sheets",
+    "@activepieces/piece-slack",
+    "@activepieces/piece-webhook"
+  ],
+  "template": {
+    "displayName": "Monitor Status Code 500",
+    "trigger": {
+      "name": "trigger",
+      "type": "PIECE_TRIGGER",
+      "valid": true,
+      "displayName": "Webhook Trigger",
+      "settings": {
+        "pieceName": "@activepieces/piece-webhook",
+        "pieceVersion": "~0.1.25",
+        "triggerName": "catch_webhook",
+        "input": {},
+        "propertySettings": {}
+      },
+      "nextAction": {
+        "name": "step_3",
+        "skip": false,
+        "type": "PIECE",
+        "valid": true,
+        "displayName": "Check if Status Code is 500",
+        "settings": {
+          "pieceName": "@activepieces/piece-code-helper",
+          "pieceVersion": "~0.2.14",
+          "actionName": "flex_custom_code",
+          "input": {
+            "code": "const statusCode = parseInt('{{trigger.body.statusCode}}');\nexport const result = statusCode === 500; // true or false"
+          },
+          "propertySettings": {
+            "code": {
+              "type": "MANUAL"
+            }
+          }
+        },
+        "nextAction": {
+          "name": "step_1",
+          "skip": false,
+          "type": "ROUTER",
+          "valid": true,
+          "displayName": "Router StatusCode",
+          "settings": {
+            "executionType": "EXECUTE_FIRST_MATCH",
+            "branches": [
+              {
+                "branchType": "CONDITION",
+                "conditions": [
+                  [
+                    {
+                      "operator": "BOOLEAN_IS_TRUE",
+                      "firstValue": "{{result}}"
+                    }
+                  ]
+                ],
+                "branchName": "Branch 1"
+              },
+              {
+                "branchType": "FALLBACK",
+                "branchName": "Otherwise"
+              }
+            ],
+            "propertySettings": {},
+            "inputUiInfo": {}
+          },
+          "children": [
+            {
+              "name": "step_7",
+              "skip": false,
+              "type": "PIECE",
+              "valid": true,
+              "displayName": "Log Incident",
+              "settings": {
+                "pieceName": "@activepieces/piece-google-sheets",
+                "pieceVersion": "~0.12.20",
+                "actionName": "insert_row",
+                "input": {
+                  "spreadsheetId": "__TODO_SPREADSHEET_ID__",
+                  "sheetId": "__TODO_SHEET_ID__",
+                  "values": "{{trigger.body}}"
+                },
+                "propertySettings": {
+                  "spreadsheetId": {
+                    "type": "MANUAL"
+                  },
+                  "sheetId": {
+                    "type": "MANUAL"
+                  },
+                  "values": {
+                    "type": "DYNAMIC"
+                  }
+                }
+              },
+              "nextAction": {
+                "name": "step_8",
+                "skip": false,
+                "type": "PIECE",
+                "valid": true,
+                "displayName": "Notify Ops Team",
+                "settings": {
+                  "pieceName": "@activepieces/piece-slack",
+                  "pieceVersion": "~0.10.16",
+                  "actionName": "send_channel_message",
+                  "input": {
+                    "channel": "#ops",
+                    "text": "\ud83d\udea8 **Ops Alert** \ud83d\udea8\n* A critical issue was detected on our system.\n* Please investigate immediately.\n\nDetails:\n\u2022 Timestamp: {{trigger.body.timestamp}}\n\u2022 URL: {{trigger.body.url}}\n\u2022 Status: {{trigger.body.statusCode}}\n\u2022 Message: {{trigger.body.message}}\n\nTake action now! \ud83d\udd17 {{trigger.body.url}}"
+                  },
+                  "propertySettings": {
+                    "auth": {
+                      "type": "MANUAL"
+                    },
+                    "file": {
+                      "type": "MANUAL"
+                    },
+                    "info": {
+                      "type": "MANUAL"
+                    },
+                    "text": {
+                      "type": "MANUAL"
+                    },
+                    "channel": {
+                      "type": "MANUAL"
+                    }
+                  },
+                  "errorHandlingOptions": {
+                    "retryOnFailure": {
+                      "value": false
+                    },
+                    "continueOnFailure": {
+                      "value": false
+                    }
+                  }
+                }
+              }
+            },
+            null
+          ]
+        }
+      }
+    },
+    "valid": true,
+    "schemaVersion": "10"
+  },
+  "blogUrl": ""
+}

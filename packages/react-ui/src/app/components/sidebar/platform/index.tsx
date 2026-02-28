@@ -215,10 +215,10 @@ export function PlatformSidebar() {
       <SidebarHeader>
         <div className="w-full py-2 flex items-center gap-2">
           <Link
-            to={defaultRoute}
+            to="/"
             className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}
           >
-            <OpSynLogoIcon className="h-5 w-5" aria-label={t('home')} />
+            <OpSynLogoIcon className="h-5 w-5" aria-label={t('Home')} />
           </Link>
           <h1 className="truncate font-semibold">OpSyn</h1>
         </div>

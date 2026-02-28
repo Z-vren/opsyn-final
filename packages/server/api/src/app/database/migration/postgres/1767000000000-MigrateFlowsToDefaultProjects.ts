@@ -21,12 +21,11 @@ export class MigrateFlowsToDefaultProjects1767000000000 implements MigrationInte
         }
 
         // Step 1: Create default projects for users who don't have any projects
-        // Get all users
+        // Get all users (user table has no deleted column in Community Edition)
         const users = await queryRunner.query(`
             SELECT u.id, u."platformId", ui.email, ui."firstName"
             FROM "user" u
             INNER JOIN "user_identity" ui ON u."identityId" = ui.id
-            WHERE u."deleted" IS NULL
         `)
 
         for (const user of users) {

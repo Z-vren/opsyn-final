@@ -1,0 +1,17 @@
+{
+  "displayName": "Test Flow",
+  "trigger": {
+    "name": "trigger",
+    "type": "PIECE_TRIGGER",
+    "valid": true,
+    "settings": {
+      "input": {},
+      "pieceName": "@activepieces/piece-github",
+      "triggerName": "github_new_issue",
+      "pieceVersion": "~0.5.11",
+      "propertySettings": {}
+    },
+    "nextAction": null
+  },
+  "schemaVersion": null
+}

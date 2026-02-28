@@ -48,6 +48,11 @@ import { SplitUpPieceMetadataIntoTools1752004202722 } from './migration/common/1
 import { AddIndexToIssues1756775080449 } from './migration/common/1756775080449-AddIndexToIssues'
 import { AddFlowIndexToTriggerSource1757555419075 } from './migration/common/1757555283659-AddFlowIndexToTriggerSource'
 import { AddIndexForAppEvents1759392852559 } from './migration/common/1759392852559-AddIndexForAppEvents'
+import { AddFlowCommentTable1764000000000 } from './migration/postgres/1764000000000-AddFlowCommentTable'
+import { AddProjectMemberTable1765000000000 } from './migration/postgres/1765000000000-AddProjectMemberTable'
+import { RemoveProjectRoleFKFromInvitationsCE1765100000000 } from './migration/postgres/1765100000000-RemoveProjectRoleFKFromInvitationsCE'
+import { AddFlowActivityTable1766000000000 } from './migration/postgres/1766000000000-AddFlowActivityTable'
+import { MigrateFlowsToDefaultProjects1767000000000 } from './migration/postgres/1767000000000-MigrateFlowsToDefaultProjects'
 import { AddProjectRoleToUserInvitation1768000000000 } from './migration/postgres/1768000000000-AddProjectRoleToUserInvitation'
 import { AddProjectIdToAIProvider1769000000000 } from './migration/postgres/1769000000000-AddProjectIdToAIProvider'
 import { AddAuthToPiecesMetadata1688922241747 } from './migration/postgres//1688922241747-AddAuthToPiecesMetadata'
@@ -187,6 +192,7 @@ import { AddPlatformBilling1734971881345 } from './migration/postgres/1734971881
 import { AddCellUniqueIndex1735057498882 } from './migration/postgres/1735057498882-AddCellUniqueIndex'
 import { AddExternalIdForFlow1735262417593 } from './migration/postgres/1735262417593-AddExternalIdForFlow'
 import { AddEnvironmentsEnabled1735267452262 } from './migration/postgres/1735267452262-AddEnvironmentsEnabled'
+import { AddPasswordResetOtpEntity1735000000000 } from './migration/postgres/1735000000000-add-password-reset-otp-entity'
 import { AddUserIdentity1735590074879 } from './migration/postgres/1735590074879-AddUserIdentity'
 import { RemoveUnusedProjectBillingFields1736607721367 } from './migration/postgres/1736607721367-RemoveUnusedProjectBillingFields'
 import { RenameGitRepoPermission1736813103505 } from './migration/postgres/1736813103505-RenameGitRepoPermission'
@@ -410,6 +416,7 @@ const getMigrations = (): (new () => MigrationInterface)[] => {
         AddCopilotSettings1734479886363,
         AddExternalIdForFlow1735262417593,
         AddEnvironmentsEnabled1735267452262,
+        AddPasswordResetOtpEntity1735000000000,
         AddUserIdentity1735590074879,
         RenameGitRepoPermission1736813103505,
         RestrictPieces1739546878775,
@@ -495,6 +502,11 @@ const getMigrations = (): (new () => MigrationInterface)[] => {
         RemoveTasksAndTasksLimit1761570485475,
         DeleteLastChangelogDismissedAt1762018344394,
         AddFailedStepAndDurationToRunPostgres1762886424449,
+        AddFlowCommentTable1764000000000,
+        AddProjectMemberTable1765000000000,
+        RemoveProjectRoleFKFromInvitationsCE1765100000000,
+        AddFlowActivityTable1766000000000,
+        MigrateFlowsToDefaultProjects1767000000000,
         AddProjectRoleToUserInvitation1768000000000,
         AddProjectIdToAIProvider1769000000000,
     ]
@@ -609,6 +621,7 @@ const getMigrations = (): (new () => MigrationInterface)[] => {
             commonMigration.push(
                 AddPlatformToPostgres1709052740378,
                 SetNotNullOnPlatform1709505632771,
+                PiecesProjectLimits1712279318440,
             )
             break
     }

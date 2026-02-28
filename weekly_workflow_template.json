@@ -1,0 +1,77 @@
+{
+  "name": "Weekly HTTP Request",
+  "description": "Simple workflow that runs every week and sends an HTTP request",
+  "tags": [],
+  "pieces": [
+    "@activepieces/piece-schedule",
+    "@activepieces/piece-http"
+  ],
+  "template": {
+    "displayName": "Weekly HTTP Request",
+    "trigger": {
+      "name": "trigger",
+      "type": "PIECE_TRIGGER",
+      "valid": true,
+      "displayName": "Every Week",
+      "settings": {
+        "pieceName": "@activepieces/piece-schedule",
+        "pieceVersion": "~0.1.13",
+        "triggerName": "every_week",
+        "input": {
+          "day_of_the_week": 1,
+          "hour_of_the_day": 9,
+          "timezone": "UTC"
+        },
+        "propertySettings": {
+          "day_of_the_week": {
+            "type": "MANUAL"
+          },
+          "hour_of_the_day": {
+            "type": "MANUAL"
+          },
+          "timezone": {
+            "type": "MANUAL"
+          }
+        },
+        "sampleData": {}
+      },
+      "nextAction": {
+        "name": "step_1",
+        "type": "PIECE",
+        "valid": true,
+        "displayName": "Send HTTP Request",
+        "settings": {
+          "pieceName": "@activepieces/piece-http",
+          "pieceVersion": "~0.9.5",
+          "actionName": "send_request",
+          "input": {
+            "url": "https://api.example.com/webhook",
+            "method": "GET",
+            "headers": {},
+            "queryParams": {},
+            "body": {}
+          },
+          "propertySettings": {
+            "url": {
+              "type": "MANUAL"
+            },
+            "method": {
+              "type": "MANUAL"
+            }
+          },
+          "errorHandlingOptions": {
+            "retryOnFailure": {
+              "value": false
+            },
+            "continueOnFailure": {
+              "value": false
+            }
+          }
+        }
+      }
+    },
+    "valid": true,
+    "schemaVersion": "10"
+  },
+  "schemaVersion": null
+}

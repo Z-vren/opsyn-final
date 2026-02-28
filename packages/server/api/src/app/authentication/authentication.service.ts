@@ -31,19 +31,21 @@ export const authenticationService = (log: FastifyBaseLogger) => ({
         
         if (shouldCreateNewPlatform) {
             // Single platform model: Get or create main platform instead of creating new one
+            const autoVerify = edition === ApEdition.COMMUNITY || edition === ApEdition.ENTERPRISE
+                || params.provider === UserIdentityProvider.GOOGLE
+                || params.provider === UserIdentityProvider.JWT
+                || params.provider === UserIdentityProvider.SAML
             let mainPlatform = await platformService.getOldestPlatform()
             if (isNil(mainPlatform)) {
-                // Create main platform if it doesn't exist
                 const userIdentity = await userIdentityService(log).create({
                     ...params,
-                    verified: params.provider === UserIdentityProvider.GOOGLE || params.provider === UserIdentityProvider.JWT || params.provider === UserIdentityProvider.SAML,
+                    verified: autoVerify,
                 })
                 return createUserAndPlatform(userIdentity, log)
             }
-            // Use existing main platform
             const userIdentity = await userIdentityService(log).create({
                 ...params,
-                verified: params.provider === UserIdentityProvider.GOOGLE || params.provider === UserIdentityProvider.JWT || params.provider === UserIdentityProvider.SAML,
+                verified: autoVerify,
             })
             const user = await userService.create({
                 identityId: userIdentity.id,
@@ -89,6 +91,7 @@ export const authenticationService = (log: FastifyBaseLogger) => ({
     },
     async signInWithPassword(params: SignInWithPasswordParams): Promise<AuthenticationResponse> {
         const identity = await userIdentityService(log).verifyIdentityPassword(params)
+        const edition = system.getEdition()
         // Single platform model: Always use main platform
         const mainPlatform = await platformService.getOldestPlatform()
         if (isNil(mainPlatform)) {
@@ -109,6 +112,11 @@ export const authenticationService = (log: FastifyBaseLogger) => ({
             email: params.email,
             platformId,
         })
+
+        // Community/Enterprise: auto-verify on sign-in if not yet verified
+        if (!identity.verified && (edition === ApEdition.COMMUNITY || edition === ApEdition.ENTERPRISE)) {
+            await userIdentityService(log).verify(identity.id)
+        }
         
         // Get or create user in main platform
         let user = await userService.getOneByIdentityAndPlatform({

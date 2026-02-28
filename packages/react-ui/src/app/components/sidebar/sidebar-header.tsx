@@ -30,9 +30,9 @@ export const AppSidebarHeader = () => {
         {showSwitcher ? (
           <SidebarMenuItem className="flex items-center justify-center gap-1">
             <Link
-              to="/dashboard"
+              to="/"
               className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}
-              title={t('home')}
+              title={t('Home')}
             >
               <Home className="h-4 w-4" />
             </Link>
@@ -40,13 +40,13 @@ export const AppSidebarHeader = () => {
               to={defaultRoute}
               className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}
             >
-              <OpSynLogoIcon className="h-5 w-5" aria-label={t('home')} />
+              <OpSynLogoIcon className="h-5 w-5" aria-label={t('Dashboard')} />
             </Link>
             <ProjectSwitcher />
           </SidebarMenuItem>
         ) : (
           <Link
-            to={defaultRoute}
+            to="/"
             className={cn(buttonVariants({ variant: 'ghost' }))}
           >
             <div className="flex items-center justify-center w-40">

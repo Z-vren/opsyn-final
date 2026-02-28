@@ -1,0 +1,58 @@
+I built an AI workflow generation system. Here's what I did - please explain it back to me:
+
+**Project**: AI system that generates Activepieces workflow JSON from natural language prompts
+
+**What I Built**:
+
+1. **Fine-Tuned LLM Model**
+   - Base: Qwen2.5-Coder-7B-Instruct (7B parameter code LLM)
+   - Method: PEFT/LoRA fine-tuning (rank=32, alpha=64)
+   - Framework: LlamaFactory
+   - Dataset: 381 workflows (instruction-output pairs)
+   - Why LoRA: Memory efficient (4-8GB vs 56GB+ for full fine-tuning)
+
+2. **FastAPI Server** (`server_v2.py`)
+   - Serves model via REST API
+   - Main endpoint: `/generate-workflow` (generates + post-processes)
+   - Deployed on Modal cloud (A10G GPU)
+
+3. **Post-Processing Pipeline** (`postprocessor_v2.py`)
+   - Fixes model output to ensure valid JSON
+   - Schema fixes (field names, missing fields)
+   - Name normalization (piece/trigger/action names)
+   - Structure correction (misplaced actions, router children)
+   - Uses smart matching for name fixes
+
+4. **Smart Matching System** (`smart_matcher.py`)
+   - NLP techniques:
+     * Text normalization (camelCase → snake_case)
+     * Fuzzy string matching (Levenshtein distance via rapidfuzz)
+     * Token-based similarity (Jaccard similarity)
+     * Cascading matching (exact → normalized → fuzzy → token)
+   - Conservative: only fixes if confidence ≥ 85%
+
+5. **Data Engineering Pipeline**
+   - Validation scripts (`comprehensive_validation.py`, `verify_dynamic.py`)
+   - Fixing scripts (`fix_all_final.py`, `fix_final_train.py`)
+   - Validated 381 workflows against codebase
+   - Fixed schema violations, invalid names, placeholder conditions
+
+**Pipeline Flow**:
+User Prompt → LLM Generation → Raw JSON → JSON Extraction → Post-Processing (schema fixes + smart matching) → Valid FlowTemplate → Activepieces Import
+
+**Key Files**:
+- `server_v2.py` - FastAPI server
+- `postprocessor_v2.py` - Post-processing
+- `smart_matcher.py` - NLP matching
+- `modal_app_v2.py` - Deployment config
+- Model: `qwen25_coder_7b_opsyn_lora_quality/` (LoRA adapter)
+
+Please explain:
+1. What the system does (high-level)
+2. How LoRA fine-tuning works and why it's memory-efficient
+3. How the post-processing pipeline fixes model errors
+4. The NLP techniques used (fuzzy matching, token similarity, etc.)
+5. The data engineering pipeline
+6. The deployment architecture
+
+Make it clear and easy to understand!

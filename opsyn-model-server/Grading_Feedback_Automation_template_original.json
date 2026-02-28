@@ -1,0 +1,80 @@
+{
+  "name": "Grading & Feedback Automation",
+  "description": "",
+  "tags": [],
+  "pieces": [
+    "@activepieces/piece-google-forms",
+    "@activepieces/piece-ai",
+    "@activepieces/piece-google-sheets"
+  ],
+  "blogUrl": "",
+  "template": {
+    "displayName": "Grading & Feedback Automation",
+    "valid": true,
+    "schemaVersion": "1",
+    "trigger": {
+      "name": "trigger",
+      "type": "PIECE_TRIGGER",
+      "valid": true,
+      "displayName": "New Response",
+      "settings": {
+        "pieceName": "@activepieces/piece-google-forms",
+        "pieceVersion": "~0.3.13",
+        "input": {
+          "auth": "{{connections['dWhpwBlcpnoCMhhY556Dp']}}",
+          "form_id": "1kWBus1eY-ZY77cpGJptgJTC7jYk1LlKMXEFniBwaeaI",
+          "include_team_drives": false
+        },
+        "propertySettings": {},
+        "triggerName": "new_response"
+      },
+      "nextAction": {
+        "name": "step_1",
+        "type": "PIECE",
+        "valid": true,
+        "displayName": "Ask AI",
+        "settings": {
+          "pieceName": "@activepieces/piece-ai",
+          "pieceVersion": "~0.0.2",
+          "input": {
+            "model": "google/gemini-2.0-flash-001",
+            "prompt": "You are a TA. Grade the following student submission on a scale of 0 to 10 and provide 2 sentences of critical feedback. Submission:{{steps.trigger.answers[\"47f85747\"].textAnswers.answers[0].value}}",
+            "provider": "activepieces",
+            "webSearch": false,
+            "creativity": 100,
+            "maxOutputTokens": 2000,
+            "webSearchOptions": {}
+          },
+          "propertySettings": {},
+          "actionName": "askAi"
+        },
+        "nextAction": {
+          "name": "step_2",
+          "type": "PIECE",
+          "valid": true,
+          "displayName": "Insert Row",
+          "settings": {
+            "pieceName": "@activepieces/piece-google-sheets",
+            "pieceVersion": "~0.13.1",
+            "input": {
+              "auth": "{{connections['xQVyR5SFP5CdknAW59wZT']}}",
+              "values": {
+                "values": [
+                  "{{steps.trigger.answers[\"1e420cfb\"].textAnswers.answers[0].value}}",
+                  "{{steps.ai.output}}"
+                ]
+              },
+              "sheetId": 0,
+              "as_string": false,
+              "spreadsheetId": "1f1Gug4XFDGYB0jx_FaAzOTLznXyW_rw3G2PG_uznIO0",
+              "first_row_headers": false,
+              "includeTeamDrives": false
+            },
+            "propertySettings": {},
+            "actionName": "insert_row"
+          }
+        }
+      }
+    }
+  }
+}

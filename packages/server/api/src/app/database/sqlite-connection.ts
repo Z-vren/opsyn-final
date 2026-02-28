@@ -91,6 +91,7 @@ import { AddCopilotSettingsSqlite1734479435668 } from './migration/sqlite/173447
 import { FieldAndRecordAndCellProjectId1734967659746 } from './migration/sqlite/1734967659746-FieldAndRecordAndCell_ProjectIdSqlite'
 import { AddCellUniqueIndex1735057433052 } from './migration/sqlite/1735057433052-AddCellUniqueIndexSqlite'
 import { AddExternalIdForFlowSqlite1735262810939 } from './migration/sqlite/1735262810939-AddExternalIdForFlowSqlite'
+import { AddPasswordResetOtpEntitySQLITE1735000000001 } from './migration/sqlite/1735000000001-AddPasswordResetOtpEntitySQLITE'
 import { AddUserIdentitySqlite1735602676499 } from './migration/sqlite/1735602676499-AddUserIdentitySqlite'
 import { TableWebhooksSqlite1737550783153 } from './migration/sqlite/1737550783153-TableWebhooksSqlite'
 import { RestrictPiecesSqlite1739544872722 } from './migration/sqlite/1739544872722-RestrictPiecesSqlite'
@@ -161,6 +162,12 @@ import { AddMaximumConcurrentJobsPerProjectSqlite1761499100171 } from './migrati
 import { RemoveTasksAndTasksLimitSqlite1761574814842 } from './migration/sqlite/1761574814842-RemoveTasksAndTasksLimitSqlite'
 import { DeleteLastChangelogDismissedAtSqlite1762018344394 } from './migration/sqlite/1762018344394-DeleteLastChangelogDismissedAtSqlite'
 import { AddFailedStepDurationSqlite1762949199414 } from './migration/sqlite/1762949199414-AddFailedStepDurationSqlite'
+import { AddFlowCommentTableSqlite1764000000000 } from './migration/sqlite/1764000000000-AddFlowCommentTableSqlite'
+import { AddProjectMemberTableSqlite1765000000000 } from './migration/sqlite/1765000000000-AddProjectMemberTableSqlite'
+import { RemoveProjectRoleFKFromInvitationsCE1765100000000 } from './migration/sqlite/1765100000000-RemoveProjectRoleFKFromInvitationsCE'
+import { AddFlowTemplateTableSqlite1765200000000 } from './migration/sqlite/1765200000000-AddFlowTemplateTableSqlite'
+import { AddFlowActivityTableSqlite1766000000000 } from './migration/sqlite/1766000000000-AddFlowActivityTableSqlite'
+import { MigrateFlowsToDefaultProjectsSqlite1767000000000 } from './migration/sqlite/1767000000000-MigrateFlowsToDefaultProjectsSqlite'
 import { AddProjectRoleToUserInvitationSqlite1768000000000 } from './migration/sqlite/1768000000000-AddProjectRoleToUserInvitationSqlite'
 import { AddProjectIdToAIProviderSqlite1769000000000 } from './migration/sqlite/1769000000000-AddProjectIdToAIProviderSqlite'
 import { PiecesProjectLimitsSqlite1712279318441 } from './migration/sqlite/1712279318441-PiecesProjectLimitsSqlite'
@@ -265,6 +272,7 @@ const getMigrations = (): (new () => MigrationInterface)[] => {
         TableWebhooksSqlite1737550783153,
         AddCopilotSettingsSqlite1734479435668,
         AddExternalIdForFlowSqlite1735262810939,
+        AddPasswordResetOtpEntitySQLITE1735000000001,
         AddUserIdentitySqlite1735602676499,
         RestrictPiecesSqlite1739544872722,
         TableWebhooksIsArraySqlite1741668828922,
@@ -342,6 +350,12 @@ const getMigrations = (): (new () => MigrationInterface)[] => {
         RemoveTasksAndTasksLimitSqlite1761574814842,
         DeleteLastChangelogDismissedAtSqlite1762018344394,
         AddFailedStepDurationSqlite1762949199414,
+        AddFlowCommentTableSqlite1764000000000,
+        AddProjectMemberTableSqlite1765000000000,
+        RemoveProjectRoleFKFromInvitationsCE1765100000000,
+        AddFlowTemplateTableSqlite1765200000000,
+        AddFlowActivityTableSqlite1766000000000,
+        MigrateFlowsToDefaultProjectsSqlite1767000000000,
         AddProjectRoleToUserInvitationSqlite1768000000000,
         AddProjectIdToAIProviderSqlite1769000000000,
     ]

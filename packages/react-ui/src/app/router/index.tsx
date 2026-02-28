@@ -69,6 +69,8 @@ import { ShareTemplatePage } from '../routes/templates/share-template';
 import { TodosPage } from '../routes/todos';
 import { TodoTestingPage } from '../routes/todos/id';
 import DashboardPage from '../routes/dashboard';
+import { LandingPage } from '../routes/landing';
+import { DocsPage } from '../routes/docs';
 
 import { AfterImportFlowRedirect } from './after-import-flow-redirect';
 import { DefaultRoute } from './default-route';
@@ -677,6 +679,22 @@ const routes = [
       <TokenCheckerWrapper>
         <ProjectHomeRedirect />
       </TokenCheckerWrapper>
+    ),
+  },
+  {
+    path: '/',
+    element: (
+      <PageTitle title="OpSyn — Automation Platform">
+        <LandingPage />
+      </PageTitle>
+    ),
+  },
+  {
+    path: '/docs',
+    element: (
+      <PageTitle title="OpSyn — Documentation">
+        <DocsPage />
+      </PageTitle>
     ),
   },
   {
