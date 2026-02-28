@@ -11,12 +11,15 @@ export const userIdentityService = (log: FastifyBaseLogger) => ({
     async create(params: Pick<UserIdentity, 'email' | 'password' | 'firstName' | 'lastName' | 'trackEvents' | 'newsLetter' | 'provider' | 'verified'>): Promise<UserIdentity> {
         log.info({
             email: params.email,
-        }, 'Creating user identity')
+        }, '[userIdentityService#create] Starting')
 
         const cleanedEmail = params.email.toLowerCase().trim()
+        log.info('[userIdentityService#create] Hashing password')
         const hashedPassword = await passwordHasher.hash(params.password)
+        log.info('[userIdentityService#create] Checking for existing user')
         const userByEmail = await userIdentityRepository().findOne({ where: { email: cleanedEmail } })
         if (userByEmail) {
+            log.info({ email: cleanedEmail }, '[userIdentityService#create] User already exists, throwing EXISTING_USER')
             throw new ActivepiecesError({
                 code: ErrorCode.EXISTING_USER,
                 params: {
@@ -25,6 +28,7 @@ export const userIdentityService = (log: FastifyBaseLogger) => ({
                 },
             })
         }
+        log.info('[userIdentityService#create] Saving new identity')
         const newUserIdentity: UserIdentity = {
             firstName: params.firstName,
             lastName: params.lastName,
@@ -40,6 +44,7 @@ export const userIdentityService = (log: FastifyBaseLogger) => ({
             tokenVersion: nanoid(),
         }
         const identity = await userIdentityRepository().save(newUserIdentity)
+        log.info({ identityId: identity.id }, '[userIdentityService#create] Identity saved successfully')
         return identity
     },
     async verifyIdentityPassword(params: VerifyIdentityPasswordParams): Promise<UserIdentity> {
@@ -96,12 +101,8 @@ export const userIdentityService = (log: FastifyBaseLogger) => ({
     async verify(id: string): Promise<UserIdentity> {
         const user = await userIdentityRepository().findOneByOrFail({ id })
         if (user.verified) {
-            throw new ActivepiecesError({
-                code: ErrorCode.AUTHORIZATION,
-                params: {
-                    message: 'User is already verified',
-                },
-            })
+            log.info({ id }, '[userIdentityService#verify] User already verified, skipping')
+            return user
         }
         return userIdentityRepository().save({
             ...user,

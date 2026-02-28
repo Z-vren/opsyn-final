@@ -53,15 +53,19 @@ export const errorHandler = async (
         })
     }
     else {
-        request.log.error('[errorHandler]: ' + JSON.stringify(error))
+        request.log.error({ err: error }, '[errorHandler] Unexpected error')
         if (
             !error.statusCode ||
       error.statusCode === StatusCodes.INTERNAL_SERVER_ERROR.valueOf()
         ) {
             exceptionHandler.handle(error, request.log)
         }
-        await reply
-            .status(error.statusCode ?? StatusCodes.INTERNAL_SERVER_ERROR)
-            .send(error)
+        // Send consistent format for frontend - ensures error.response?.data?.code exists
+        const statusCode = error.statusCode ?? StatusCodes.INTERNAL_SERVER_ERROR
+        const message = (error as Error).message || 'An unexpected error occurred'
+        await reply.status(statusCode).send({
+            code: ErrorCode.VALIDATION,
+            params: { message },
+        })
     }
 }

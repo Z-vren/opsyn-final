@@ -22,27 +22,31 @@ export const authenticationController: FastifyPluginAsyncTypebox = async (
     app,
 ) => {
     app.post('/sign-up', SignUpRequestOptions, async (request) => {
+        try {
+            const platformId = await platformUtils.getPlatformIdForRequest(request)
+            const signUpResponse = await authenticationService(request.log).signUp({
+                ...request.body,
+                provider: UserIdentityProvider.EMAIL,
+                platformId: platformId ?? null,
+            })
 
-        const platformId = await platformUtils.getPlatformIdForRequest(request)
-        const signUpResponse = await authenticationService(request.log).signUp({
-            ...request.body,
-            provider: UserIdentityProvider.EMAIL,
-            platformId: platformId ?? null,
-        })
+                eventsHooks.get(request.log).sendUserEvent({
+                platformId: signUpResponse.platformId!,
+                userId: signUpResponse.id,
+                ...(signUpResponse.projectId && { projectId: signUpResponse.projectId }),
+                ip: networkUtils.extractClientRealIp(request, system.get(AppSystemProp.CLIENT_REAL_IP_HEADER)),
+            }, {
+                action: ApplicationEventName.USER_SIGNED_UP,
+                data: {
+                    source: 'credentials',
+                },
+            })
 
-        eventsHooks.get(request.log).sendUserEvent({
-            platformId: signUpResponse.platformId!,
-            userId: signUpResponse.id,
-            ...(signUpResponse.projectId && { projectId: signUpResponse.projectId }),
-            ip: networkUtils.extractClientRealIp(request, system.get(AppSystemProp.CLIENT_REAL_IP_HEADER)),
-        }, {
-            action: ApplicationEventName.USER_SIGNED_UP,
-            data: {
-                source: 'credentials',
-            },
-        })
-
-        return signUpResponse
+            return signUpResponse
+        } catch (err) {
+            request.log.error({ err, email: request.body?.email }, '[sign-up] Error during sign-up')
+            throw err
+        }
     })
 
     app.post('/sign-in', SignInRequestOptions, async (request) => {

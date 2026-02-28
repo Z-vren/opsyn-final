@@ -154,6 +154,15 @@ const SignUpForm = ({
             });
             break;
           }
+          case ErrorCode.VALIDATION: {
+            const params = (error.response?.data as { params?: { message?: string } })
+              ?.params;
+            form.setError('root.serverError', {
+              message:
+                params?.message || t('Something went wrong, please try again later'),
+            });
+            break;
+          }
           default: {
             form.setError('root.serverError', {
               message: t('Something went wrong, please try again later'),
@@ -161,6 +170,10 @@ const SignUpForm = ({
             break;
           }
         }
+      } else {
+        form.setError('root.serverError', {
+          message: t('Something went wrong, please try again later'),
+        });
       }
     },
   });

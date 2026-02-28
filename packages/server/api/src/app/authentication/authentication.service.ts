@@ -14,8 +14,8 @@ import { projectPermissionsService } from './project-permissions.service'
 
 export const authenticationService = (log: FastifyBaseLogger) => ({
     async signUp(params: SignUpParams): Promise<AuthenticationResponse> {
+        log.info({ email: params.email }, '[signUp] Starting sign-up')
         const edition = system.getEdition()
-        // In COMMUNITY edition, always allow open sign-up - each user gets their own platform
         const shouldCreateNewPlatform = isNil(params.platformId) || edition === ApEdition.COMMUNITY
         
         if (!shouldCreateNewPlatform && !isNil(params.platformId)) {
@@ -30,19 +30,21 @@ export const authenticationService = (log: FastifyBaseLogger) => ({
         }
         
         if (shouldCreateNewPlatform) {
-            // Single platform model: Get or create main platform instead of creating new one
             const autoVerify = edition === ApEdition.COMMUNITY || edition === ApEdition.ENTERPRISE
                 || params.provider === UserIdentityProvider.GOOGLE
                 || params.provider === UserIdentityProvider.JWT
                 || params.provider === UserIdentityProvider.SAML
-            let mainPlatform = await platformService.getOldestPlatform()
+            const mainPlatform = await platformService.getOldestPlatform()
+            log.info({ hasMainPlatform: !isNil(mainPlatform) }, '[signUp] Checked for main platform')
             if (isNil(mainPlatform)) {
+                log.info('[signUp] No main platform, creating user and platform')
                 const userIdentity = await userIdentityService(log).create({
                     ...params,
                     verified: autoVerify,
                 })
                 return createUserAndPlatform(userIdentity, log)
             }
+            log.info({ mainPlatformId: mainPlatform.id }, '[signUp] Main platform exists, creating user on existing platform')
             const userIdentity = await userIdentityService(log).create({
                 ...params,
                 verified: autoVerify,
@@ -52,9 +54,11 @@ export const authenticationService = (log: FastifyBaseLogger) => ({
                 platformRole: PlatformRole.MEMBER,
                 platformId: mainPlatform.id,
             })
+            log.info({ userId: user.id }, '[signUp] User created on existing platform')
             await userInvitationsService(log).provisionUserInvitation({
                 email: params.email,
             })
+            log.info('[signUp] Getting project and token')
             return authenticationUtils.getProjectAndToken({
                 userId: user.id,
                 platformId: mainPlatform.id,
@@ -307,15 +311,18 @@ async function getUserForPlatform(identityId: string, platform: PlatformWithoutS
 }
 
 async function createUserAndPlatform(userIdentity: UserIdentity, log: FastifyBaseLogger): Promise<AuthenticationResponse> {
+    log.info({ email: userIdentity.email }, '[createUserAndPlatform] Starting')
     const user = await userService.create({
         identityId: userIdentity.id,
         platformRole: PlatformRole.ADMIN,
         platformId: null,
     })
+    log.info({ userId: user.id }, '[createUserAndPlatform] User created')
     const platform = await platformService.create({
         ownerId: user.id,
         name: 'OpSyn',
     })
+    log.info({ platformId: platform.id }, '[createUserAndPlatform] Platform created')
     await userService.addOwnerToPlatform({
         platformId: platform.id,
         id: user.id,
@@ -325,6 +332,7 @@ async function createUserAndPlatform(userIdentity: UserIdentity, log: FastifyBas
         ownerId: user.id,
         platformId: platform.id,
     })
+    log.info({ projectId: defaultProject.id }, '[createUserAndPlatform] Project created')
 
     const cloudEdition = system.getEdition()
 
@@ -357,6 +365,7 @@ async function createUserAndPlatform(userIdentity: UserIdentity, log: FastifyBas
     })
     await authenticationUtils.saveNewsLetterSubscriber(user, platform.id, userIdentity, log)
 
+    log.info({ userId: user.id, projectId: defaultProject.id }, '[createUserAndPlatform] Getting project and token')
     return authenticationUtils.getProjectAndToken({
         userId: user.id,
         platformId: platform.id,

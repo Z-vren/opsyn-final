@@ -4,13 +4,12 @@ import { useMutation } from '@tanstack/react-query';
 import { t } from 'i18next';
 import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { flagsHooks } from '@/hooks/flags-hooks';
 import { HttpError, api } from '@/lib/api';
 import { authenticationApi } from '@/lib/authentication-api';
 import { authenticationSession } from '@/lib/authentication-session';
@@ -18,7 +17,6 @@ import { useRedirectAfterLogin } from '@/lib/navigation-utils';
 import { formatUtils } from '@/lib/utils';
 import { OtpType } from '@/features/authentication/lib/authn-types';
 import {
-  ApFlagId,
   AuthenticationResponse,
   ErrorCode,
   isNil,
@@ -51,7 +49,6 @@ const SignInForm: React.FC = () => {
     mode: 'onChange',
   });
 
-  const { data: userCreated } = flagsHooks.useFlag(ApFlagId.USER_CREATED);
   const redirectAfterLogin = useRedirectAfterLogin();
 
   const { mutate, isPending } = useMutation<
@@ -121,9 +118,8 @@ const SignInForm: React.FC = () => {
     mutate(data);
   };
 
-  if (!userCreated) {
-    return <Navigate to="/sign-up" />;
-  }
+  // Don't auto-redirect - let users access sign-in even if USER_CREATED is false
+  // (handles partial sign-up failures where identity exists but flag wasn't set)
 
   return (
     <>
