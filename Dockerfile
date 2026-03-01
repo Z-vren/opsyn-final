@@ -58,20 +58,20 @@ RUN npx nx run-many --target=build --projects=server-api --configuration product
 ARG AP_BUILD_PIECES="pieces-schedule,pieces-webhook,pieces-http,pieces-slack,pieces-openai,pieces-google-sheets,pieces-google-drive,pieces-gmail,pieces-discord,pieces-notion,pieces-airtable,pieces-trello,pieces-stripe,pieces-hubspot,pieces-typeform,pieces-todoist,pieces-amazon-s3,pieces-rss,pieces-calendly,pieces-linear,pieces-zendesk,pieces-intercom,pieces-clickup,pieces-asana,pieces-monday,pieces-dropbox,pieces-box,pieces-microsoft-onedrive,pieces-mailchimp,pieces-wordpress,pieces-twitter,pieces-google-forms,pieces-telegram-bot,pieces-subflows,pieces-store,pieces-text-helper,pieces-json,pieces-image-helper,pieces-zoom,pieces-delay,pieces-jira-cloud,pieces-github,pieces-apify,pieces-open-router"
 RUN npx nx run-many --target=build --projects=${AP_BUILD_PIECES} --skip-nx-cache --parallel=4
 
-# Generate a merged package.json with all third-party piece dependencies
+# Generate a merged package.json with all third-party piece dependencies at dist/packages/ level
 RUN node -e " \
   const fs = require('fs'), path = require('path'); \
-  const dir = path.join(__dirname, 'dist/packages/pieces/community'); \
   const deps = {}; \
-  fs.readdirSync(dir).forEach(d => { \
-    try { \
-      const pkg = JSON.parse(fs.readFileSync(path.join(dir, d, 'package.json'), 'utf8')); \
-      Object.entries(pkg.dependencies || {}).forEach(([k, v]) => { \
-        if (!k.startsWith('@activepieces/')) deps[k] = v; \
-      }); \
-    } catch(e) {} \
-  }); \
-  fs.writeFileSync(path.join(__dirname, 'dist/packages/pieces/package.json'), \
+  const addDeps = (pkgPath) => { try { \
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8')); \
+    Object.entries(pkg.dependencies || {}).forEach(([k, v]) => { \
+      if (!k.startsWith('@activepieces/')) deps[k] = v; \
+    }); \
+  } catch(e) {} }; \
+  const pDir = path.join(__dirname, 'dist/packages/pieces/community'); \
+  fs.readdirSync(pDir).forEach(d => addDeps(path.join(pDir, d, 'package.json'))); \
+  addDeps(path.join(__dirname, 'dist/packages/shared/package.json')); \
+  fs.writeFileSync(path.join(__dirname, 'dist/packages/package.json'), \
     JSON.stringify({ name: 'pieces-deps', version: '1.0.0', dependencies: deps })); \
 "
 
@@ -104,16 +104,17 @@ COPY --from=build /usr/src/app/dist/packages/engine/ /usr/src/app/dist/packages/
 COPY --from=build /usr/src/app/dist/packages/server/ /usr/src/app/dist/packages/server/
 COPY --from=build /usr/src/app/dist/packages/shared/ /usr/src/app/dist/packages/shared/
 COPY --from=build /usr/src/app/dist/packages/pieces/ /usr/src/app/dist/packages/pieces/
-
-# Create symlinks so pieces can resolve @activepieces/* internal packages
-RUN mkdir -p /usr/src/app/dist/packages/pieces/node_modules/@activepieces && \
-    ln -s /usr/src/app/dist/packages/pieces/community/framework /usr/src/app/dist/packages/pieces/node_modules/@activepieces/pieces-framework && \
-    ln -s /usr/src/app/dist/packages/pieces/community/common /usr/src/app/dist/packages/pieces/node_modules/@activepieces/pieces-common && \
-    ln -s /usr/src/app/dist/packages/pieces/community/common-ai /usr/src/app/dist/packages/pieces/node_modules/@activepieces/pieces-common-ai && \
-    ln -s /usr/src/app/dist/packages/shared /usr/src/app/dist/packages/pieces/node_modules/@activepieces/shared
+COPY --from=build /usr/src/app/dist/packages/package.json /usr/src/app/dist/packages/package.json
 
 # Install third-party piece dependencies (googleapis, openai, slack, etc.)
-RUN cd /usr/src/app/dist/packages/pieces && bun install --production
+RUN cd /usr/src/app/dist/packages && bun install --production
+
+# Create symlinks so pieces can resolve @activepieces/* internal packages
+RUN mkdir -p /usr/src/app/dist/packages/node_modules/@activepieces && \
+    ln -s /usr/src/app/dist/packages/pieces/community/framework /usr/src/app/dist/packages/node_modules/@activepieces/pieces-framework && \
+    ln -s /usr/src/app/dist/packages/pieces/community/common /usr/src/app/dist/packages/node_modules/@activepieces/pieces-common && \
+    ln -s /usr/src/app/dist/packages/pieces/community/common-ai /usr/src/app/dist/packages/node_modules/@activepieces/pieces-common-ai && \
+    ln -s /usr/src/app/dist/packages/shared /usr/src/app/dist/packages/node_modules/@activepieces/shared
 
 RUN cd /usr/src/app/dist/packages/server/api/ && bun install --production --force
 
