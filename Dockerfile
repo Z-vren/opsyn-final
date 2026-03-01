@@ -113,7 +113,7 @@ RUN cd /usr/src/app/dist/packages && bun install --production
 RUN mkdir -p /usr/src/app/dist/packages/node_modules/@activepieces && \
     ln -s /usr/src/app/dist/packages/pieces/community/framework /usr/src/app/dist/packages/node_modules/@activepieces/pieces-framework && \
     ln -s /usr/src/app/dist/packages/pieces/community/common /usr/src/app/dist/packages/node_modules/@activepieces/pieces-common && \
-    ln -s /usr/src/app/dist/packages/pieces/community/common-ai /usr/src/app/dist/packages/node_modules/@activepieces/pieces-common-ai && \
+    ln -s /usr/src/app/dist/packages/pieces/community/common-ai /usr/src/app/dist/packages/node_modules/@activepieces/common-ai && \
     ln -s /usr/src/app/dist/packages/shared /usr/src/app/dist/packages/node_modules/@activepieces/shared
 
 RUN cd /usr/src/app/dist/packages/server/api/ && bun install --production --force
