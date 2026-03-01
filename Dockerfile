@@ -54,6 +54,10 @@ ENV NX_NO_CLOUD=true
 RUN npx nx run-many --target=build --projects=react-ui --skip-nx-cache
 RUN npx nx run-many --target=build --projects=server-api --configuration production --skip-nx-cache
 
+# Build pieces so they can be loaded from the filesystem (AP_PIECES_SOURCE=FILE)
+ARG AP_BUILD_PIECES="pieces-schedule,pieces-webhook,pieces-http,pieces-slack,pieces-openai,pieces-google-sheets,pieces-google-drive,pieces-gmail,pieces-discord,pieces-notion,pieces-airtable,pieces-trello,pieces-stripe,pieces-hubspot,pieces-typeform,pieces-todoist,pieces-amazon-s3,pieces-rss,pieces-calendly,pieces-linear,pieces-zendesk,pieces-intercom,pieces-clickup,pieces-asana,pieces-monday,pieces-dropbox,pieces-box,pieces-microsoft-onedrive,pieces-mailchimp,pieces-wordpress,pieces-twitter,pieces-google-forms,pieces-telegram-bot,pieces-subflows,pieces-store,pieces-text-helper,pieces-json,pieces-image-helper,pieces-zoom,pieces-delay,pieces-jira-cloud,pieces-github,pieces-apify,pieces-open-router"
+RUN npx nx run-many --target=build --projects=${AP_BUILD_PIECES} --skip-nx-cache --parallel=4
+
 # Install backend production dependencies
 RUN cd dist/packages/server/api && bun install --production --force
 
@@ -76,11 +80,13 @@ COPY --from=build /usr/src/app/LICENSE .
 RUN mkdir -p /usr/src/app/dist/packages/server/
 RUN mkdir -p /usr/src/app/dist/packages/engine/
 RUN mkdir -p /usr/src/app/dist/packages/shared/
+RUN mkdir -p /usr/src/app/dist/packages/pieces/
 
 # Copy Output files to appropriate directory from build stage
 COPY --from=build /usr/src/app/dist/packages/engine/ /usr/src/app/dist/packages/engine/
 COPY --from=build /usr/src/app/dist/packages/server/ /usr/src/app/dist/packages/server/
 COPY --from=build /usr/src/app/dist/packages/shared/ /usr/src/app/dist/packages/shared/
+COPY --from=build /usr/src/app/dist/packages/pieces/ /usr/src/app/dist/packages/pieces/
 
 RUN cd /usr/src/app/dist/packages/server/api/ && bun install --production --force
 

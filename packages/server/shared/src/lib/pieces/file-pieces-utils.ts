@@ -166,7 +166,7 @@ export const filePiecesUtils = (packages: string[], log: FastifyBaseLogger) => {
             }
 
             pieceCache[folderPath] = metadata
-
+            return metadata
         }
         catch (ex) {
             pieceCache[folderPath] = null
