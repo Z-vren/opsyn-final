@@ -2,7 +2,7 @@ import {
   createAction,
   Property,
 } from '@activepieces/pieces-framework';
-import { ExecutionType, PauseType } from '@activepieces/shared';
+import { ExecutionType, PauseType, RunEnvironment } from '@activepieces/shared';
 import { markdownDescription } from '../common';
 import { z } from 'zod';
 import { propsValidation } from '@activepieces/pieces-common';
@@ -58,6 +58,17 @@ export const delayForAction = createAction({
 
     const unit = ctx.propsValue.unit ?? TimeUnit.SECONDS;
     const delayInMs = calculateDelayInMs(ctx.propsValue.delayFor, unit);
+
+    const TWO_MINUTES_MS = 2 * 60 * 1000;
+    if (ctx.runEnvironment === RunEnvironment.TESTING && delayInMs > TWO_MINUTES_MS) {
+      return {
+        delayForInMs: delayInMs,
+        success: true,
+        skipped: true,
+        reason: 'Delay skipped during testing (> 2 minutes)',
+      };
+    }
+
     if (ctx.executionType == ExecutionType.RESUME) {
       return {
         delayForInMs: delayInMs,

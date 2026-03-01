@@ -1,5 +1,5 @@
 import { createAction, Property } from '@activepieces/pieces-framework';
-import { ExecutionType, PauseType } from '@activepieces/shared';
+import { ExecutionType, PauseType, RunEnvironment } from '@activepieces/shared';
 import dayjs from 'dayjs';
 import { markdownDescription } from '../common';
 
@@ -30,6 +30,17 @@ export const delayUntilAction = createAction({
   async run(ctx) {
     const delayTill = new Date(ctx.propsValue.delayUntilTimestamp);
     const delayInMs = delayTill.getTime() - Date.now();
+
+    const TWO_MINUTES_MS = 2 * 60 * 1000;
+    if (ctx.runEnvironment === RunEnvironment.TESTING && delayInMs > TWO_MINUTES_MS) {
+      return {
+        delayTill,
+        success: true,
+        skipped: true,
+        reason: 'Delay skipped during testing (> 2 minutes)',
+      };
+    }
+
     if (ctx.executionType == ExecutionType.RESUME) {
       return {
         delayTill: delayTill,

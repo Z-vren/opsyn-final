@@ -6,6 +6,7 @@ import {
   ProjectId,
   RespondResponse,
   ResumePayload,
+  RunEnvironment,
   SeekPage,
   TriggerPayload,
   TriggerStrategy,
@@ -173,6 +174,7 @@ export type BaseActionContext<
   ActionProps extends InputPropertyMap
 > = BaseContext<PieceAuth, ActionProps> & {
   executionType: ET;
+  runEnvironment?: RunEnvironment;
   tags: TagsManager;
   server: ServerContext;
   files: FilesService;

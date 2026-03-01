@@ -87,6 +87,7 @@ const executeAction: ActionHandler<PieceAction> = async ({ action, executionStat
         }
         const context: ActionContext = {
             executionType: isPaused ? ExecutionType.RESUME : ExecutionType.BEGIN,
+            runEnvironment: constants.runEnvironment,
             resumePayload: constants.resumePayload!,
             store: createContextStore({
                 apiUrl: constants.internalApiUrl,
