@@ -420,7 +420,7 @@ export const createBuilderStore = (initialState: BuilderInitialState) =>
             run.status,
             run.steps,
           );
-          const initiallySelectedStep = run.steps
+          const initiallySelectedStep = lastStepWithStatus
             ? determineInitiallySelectedStep(lastStepWithStatus, flowVersion)
             : state.selectedStep ?? 'trigger';
           return {

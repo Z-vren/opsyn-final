@@ -35,6 +35,32 @@ interface GetMailProps {
 }
 
 export const GmailRequests = {
+  getMailParsed: async ({
+    access_token,
+    message_id,
+  }: {
+    access_token: string;
+    message_id: string;
+  }) => {
+    const response = await httpClient.sendRequest<GmailMessage>({
+      method: HttpMethod.GET,
+      url: `https://gmail.googleapis.com/gmail/v1/users/me/messages/${message_id}`,
+      authentication: {
+        type: AuthenticationType.BEARER_TOKEN,
+        token: access_token,
+      },
+      queryParams: {
+        format: GmailMessageFormat.RAW,
+      },
+    });
+    const parsed = await parseStream(
+      Buffer.from(response.body.raw, 'base64url').toString('utf-8')
+    );
+    return {
+      id: response.body.id,
+      ...parsed,
+    };
+  },
   getMail: async ({ access_token, format, message_id }: GetMailProps) => {
     const response = await httpClient.sendRequest<GmailMessage>({
       method: HttpMethod.GET,

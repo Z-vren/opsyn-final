@@ -21,6 +21,7 @@ export const getActors = createAction({
       method: HttpMethod.GET,
       url,
       headers,
+      timeout: 30000,
     };
 
     const response = await httpClient.sendRequest(httprequestdata);

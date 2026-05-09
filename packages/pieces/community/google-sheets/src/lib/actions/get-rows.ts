@@ -11,7 +11,7 @@ import {
   googleSheetsCommon,
   mapRowsToHeaderNames,
 } from '../common/common';
-import { isNil } from '@activepieces/shared';
+import { isNil, RunEnvironment } from '@activepieces/shared';
 import { HttpError } from '@activepieces/pieces-common';
 import { z } from 'zod';
 import { propsValidation } from '@activepieces/pieces-common';
@@ -40,7 +40,7 @@ async function getRows(
   const existingGridRowCount = sheetGridRange.rowCount ??0;
 	// const existingGridColumnCount = sheetGridRange.columnCount??26;
 
-  const memVal = await store.get(memKey, StoreScope.FLOW);
+  const memVal = testing ? null : await store.get(memKey, StoreScope.FLOW);
 
   let startingRow;
   if (isNil(memVal) || memVal === '') startingRow = startRow || 1;
@@ -150,7 +150,8 @@ export const getRowsAction = createAction({
       defaultValue: 1,
     }),
   },
-  async run({ store, auth, propsValue }) {
+  async run(context) {
+    const { store, auth, propsValue, runEnvironment } = context;
     const { startRow, groupSize, memKey, headerRow, spreadsheetId, sheetId, useHeaderNames} = propsValue;
 
     if (!areSheetIdsValid(spreadsheetId, sheetId)) {
@@ -161,6 +162,8 @@ export const getRowsAction = createAction({
       startRow: z.number().min(1),
       groupSize: z.number().min(1),
     });
+
+    const isTestingMode = runEnvironment === RunEnvironment.TESTING;
 
     try {
       return await getRows(
@@ -173,7 +176,7 @@ export const getRowsAction = createAction({
         startRow,
         headerRow,
         useHeaderNames as boolean,
-        false
+        isTestingMode
       );
     } catch (error) {
       if (error instanceof HttpError) {

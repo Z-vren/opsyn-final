@@ -38,6 +38,7 @@ export const startActor = createAction({
       url,
       headers,
       body: JSON.stringify(context.propsValue.jsonbody),
+      timeout: 30000,
     };
 
     const response = await httpClient.sendRequest(httprequestdata);
